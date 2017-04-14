@@ -4,6 +4,7 @@ var path = require('path');
 var cheerio = require('cheerio');
 var url = require('url');
 var Promise = require('bluebird');
+var jsdom = require('jsdom').jsdom().defaultView
 
 function StaticSiteGeneratorWebpackPlugin(options) {
   if (arguments.length > 1) {
@@ -21,6 +22,7 @@ function StaticSiteGeneratorWebpackPlugin(options) {
 
 StaticSiteGeneratorWebpackPlugin.prototype.apply = function(compiler) {
   var self = this;
+  var scope = Object.assign(jsdom, self.globals)
 
   compiler.plugin('this-compilation', function(compilation) {
     compilation.plugin('optimize-assets', function(_, done) {
@@ -39,7 +41,7 @@ StaticSiteGeneratorWebpackPlugin.prototype.apply = function(compiler) {
         var assets = getAssetsFromCompilation(compilation, webpackStatsJson);
 
         var source = asset.source();
-        var render = evaluate(source, /* filename: */ self.entry, /* scope: */ self.globals, /* includeGlobals: */ true);
+        var render = evaluate(source, /* filename: */ self.entry, /* scope: */ scope, /* includeGlobals: */ true);
 
         if (render.hasOwnProperty('default')) {
           render = render['default'];
